@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  telumdb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telumdb-server
+    ports:
+      - "5432:5432"  # Database protocol
+      - "8080:8080"  # HTTP API
+      - "9000:9000"  # Metrics
+    environment:
+      - TELUMDB_LOG_LEVEL=info
+      - TELUMDB_DATA_DIR=/app/data
+      - TELUMDB_CONFIG_FILE=/app/config.yaml
+    volumes:
+      - telumdb_data:/app/data
+      - ./config:/app/config:ro
+    networks:
+      - telumdb-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "telumdb", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  telumdb-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telumdb-cli
+    command: ["tail", "-f", "/dev/null"]  # Keep container running
+    environment:
+      - TELUMDB_URL=telumdb://telumdb:5432
+    networks:
+      - telumdb-network
+    depends_on:
+      telumdb:
+        condition: service_healthy
+    profiles:
+      - cli
+
+  # Optional: PostgreSQL for comparison/testing
+  postgres:
+    image: postgres:15-alpine
+    container_name: telumdb-postgres
+    environment:
+      - POSTGRES_DB=telumdb_test
+      - POSTGRES_USER=telumdb
+      - POSTGRES_PASSWORD=telumdb123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - telumdb-network
+    profiles:
+      - testing
+
+  # Optional: Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: telumdb-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - telumdb-network
+    profiles:
+      - cache
+
+  # Optional: Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: telumdb-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - telumdb-network
+    profiles:
+      - monitoring
+
+  # Optional: Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: telumdb-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - telumdb-network
+    profiles:
+      - monitoring
+
+volumes:
+  telumdb_data:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  telumdb-network:
+    driver: bridge
