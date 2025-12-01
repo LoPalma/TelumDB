@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/telumdb/telumdb/internal/client"
+	"github.com/telumdb/telumdb/pkg/parser"
 )
 
 var (
@@ -25,6 +26,8 @@ func main() {
 		password    = flag.String("password", "", "Password")
 		command     = flag.String("c", "", "Execute command and exit")
 		file        = flag.String("f", "", "Execute commands from file")
+		batch       = flag.Bool("batch", false, "Run in batch mode (continue on errors)")
+		verbose     = flag.Bool("v", false, "Verbose output")
 		showHelp    = flag.Bool("help", false, "Show help message")
 		showVersion = flag.Bool("version", false, "Show version information")
 	)
@@ -69,7 +72,7 @@ func main() {
 
 	// Execute commands from file if provided
 	if *file != "" {
-		if err := executeFile(ctx, cli, *file); err != nil {
+		if err := executeFileBatch(ctx, cli, *file, *batch, *verbose); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
@@ -89,25 +92,63 @@ func executeCommand(ctx context.Context, cli *client.Client, command string) err
 }
 
 func executeFile(ctx context.Context, cli *client.Client, filename string) error {
-	file, err := os.Open(filename)
-	if err != nil {
-		return fmt.Errorf("failed to open file %s: %w", filename, err)
-	}
-	defer file.Close()
+	return executeFileBatch(ctx, cli, filename, false, false)
+}
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "--") {
+func executeFileBatch(ctx context.Context, cli *client.Client, filename string, batchMode, verbose bool) error {
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("failed to read file %s: %w", filename, err)
+	}
+
+	// Parse the script with error location tracking
+	script, err := parser.ParseScript(string(content))
+	if err != nil {
+		return fmt.Errorf("failed to parse script %s: %w", filename, err)
+	}
+
+	// Validate the script
+	if errors := parser.ValidateScript(script); len(errors) > 0 {
+		fmt.Fprintf(os.Stderr, "Script validation errors in %s:\n", filename)
+		for _, parseErr := range errors {
+			fmt.Fprintf(os.Stderr, "  %v\n", parseErr)
+		}
+		if !batchMode {
+			return fmt.Errorf("script validation failed")
+		}
+		fmt.Fprintf(os.Stderr, "Continuing in batch mode...\n")
+	}
+
+	// Execute statements
+	var errorCount int
+	for i, stmt := range script.Statements {
+		if stmt.Type == parser.StatementTypeEmpty || stmt.Type == parser.StatementTypeComment {
 			continue
 		}
 
-		if err := executeCommand(ctx, cli, line); err != nil {
-			return fmt.Errorf("error executing command '%s': %w", line, err)
+		if verbose {
+			fmt.Printf("Executing statement %d/%d at %s...\n", i+1, len(script.Statements), stmt.Position.String())
+		}
+
+		if err := executeCommand(ctx, cli, stmt.Text); err != nil {
+			errorCount++
+			fmt.Fprintf(os.Stderr, "Error at %s: %v\n", stmt.Position.String(), err)
+			if !batchMode {
+				return fmt.Errorf("execution stopped due to error")
+			}
+			fmt.Fprintf(os.Stderr, "Continuing in batch mode...\n")
+		} else if verbose {
+			fmt.Printf("Statement %d executed successfully\n", i+1)
 		}
 	}
 
-	return scanner.Err()
+	if errorCount > 0 {
+		fmt.Fprintf(os.Stderr, "Completed with %d errors\n", errorCount)
+	} else if verbose {
+		fmt.Printf("All %d statements executed successfully\n", len(script.Statements))
+	}
+
+	return nil
 }
 
 func runInteractive(ctx context.Context, cli *client.Client) {
@@ -181,7 +222,7 @@ func handleMetaCommand(command string, cli *client.Client) error {
 	return nil
 }
 
-func listDatabases(cli *client.Client) error {
+func listDatabases(_ *client.Client) error {
 	// TODO: Implement database listing
 	fmt.Println("Databases:")
 	fmt.Println("  telumdb")
@@ -212,7 +253,7 @@ func describeObject(cli *client.Client, name string) error {
 	return printResult(result)
 }
 
-func connectToDatabase(cli *client.Client, dbname string) error {
+func connectToDatabase(_ *client.Client, dbname string) error {
 	// TODO: Implement database switching
 	fmt.Printf("Connected to database %s\n", dbname)
 	return nil
@@ -253,6 +294,21 @@ func printResult(result *client.Result) error {
 func printHelp() {
 	fmt.Printf(`TelumDB CLI - Interactive Database Client
 
+Usage:
+  telumdb-cli [options]
+
+Options:
+  -url string        Server URL (default: "telumdb://localhost:5432")
+  -db string          Database name
+  -user string        Username
+  -password string    Password
+  -c string           Execute command and exit
+  -f string           Execute commands from file
+  -batch              Run in batch mode (continue on errors)
+  -v                  Verbose output
+  -help               Show this help message
+  -version            Show version information
+
 Meta Commands:
   \h, \help           Show this help message
   \q, \quit           Quit the CLI
@@ -267,10 +323,26 @@ SQL/TQL Commands:
   Extended TQL commands for tensor operations
 
 Examples:
+  # Interactive mode
+  telumdb-cli
+
+  # Single command
+  telumdb-cli -c "SHOW TABLES"
+
+  # Execute script with error reporting
+  telumdb-cli -f script.tql
+
+  # Batch mode (continue on errors)
+  telumdb-cli -f script.tql -batch
+
+  # Verbose execution
+  telumdb-cli -f script.tql -v
+
+Script Format:
+  -- Comments start with --
   CREATE TABLE users (id INTEGER, name VARCHAR(255));
-  CREATE TENSOR embeddings (shape [768], dtype float32);
+  CREATE TENSOR embeddings (shape [1000, 768], dtype float32);
   SELECT * FROM users;
-  SELECT * FROM embeddings WHERE slice = [0:100];
 
 For more information, visit: https://github.com/telumdb/telumdb
 `)

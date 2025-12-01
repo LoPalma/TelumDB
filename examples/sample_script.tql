@@ -1,0 +1,114 @@
+-- TelumDB Sample Script
+-- Demonstrates SQL and TQL capabilities
+
+-- Create traditional tables
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE,
+    age INTEGER,
+    department VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE products (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100),
+    price DECIMAL(10,2),
+    description TEXT
+);
+
+-- Create tensors for ML features
+CREATE TENSOR user_embeddings (
+    shape [10000, 768],
+    dtype float32,
+    chunk_size [1000, 768]
+);
+
+CREATE TENSOR product_embeddings (
+    shape [5000, 768],
+    dtype float32,
+    chunk_size [500, 768]
+);
+
+-- Insert sample data
+INSERT INTO users (name, email, age, department) VALUES
+    ('Alice Johnson', 'alice@company.com', 30, 'Engineering'),
+    ('Bob Smith', 'bob@company.com', 25, 'Marketing'),
+    ('Charlie Brown', 'charlie@company.com', 35, 'Engineering'),
+    ('Diana Prince', 'diana@company.com', 28, 'Sales'),
+    ('Eve Wilson', 'eve@company.com', 32, 'Engineering');
+
+INSERT INTO products (name, category, price, description) VALUES
+    ('Laptop Pro', 'Electronics', 1299.99, 'High-performance laptop for professionals'),
+    ('Wireless Mouse', 'Electronics', 49.99, 'Ergonomic wireless mouse'),
+    ('Office Chair', 'Furniture', 399.99, 'Comfortable office chair with lumbar support'),
+    ('Coffee Maker', 'Appliances', 89.99, 'Programmable coffee maker'),
+    ('Standing Desk', 'Furniture', 599.99, 'Adjustable height standing desk');
+
+-- Create indexes for performance
+CREATE INDEX idx_users_department ON users(department);
+CREATE INDEX idx_products_category ON products(category);
+
+-- Traditional SQL queries
+SELECT u.name, u.email, u.age
+FROM users u
+WHERE u.department = 'Engineering'
+  AND u.age > 25
+ORDER BY u.age DESC;
+
+-- Mixed SQL + TQL queries
+SELECT u.name, u.department,
+       cosine_similarity(ue.embeddings, [0.1, 0.2, 0.3, 0.4, 0.5]) as similarity
+FROM users u
+JOIN user_embeddings ue ON u.id = ue.user_id
+WHERE u.department = 'Engineering'
+  AND cosine_similarity(ue.embeddings, [0.1, 0.2, 0.3, 0.4, 0.5]) > 0.7
+ORDER BY similarity DESC
+LIMIT 5;
+
+-- Product recommendations based on embeddings
+SELECT p.name, p.category, p.price,
+       cosine_similarity(pe.embeddings, query_vector) as similarity
+FROM products p
+JOIN product_embeddings pe ON p.id = pe.product_id
+WHERE p.category = 'Electronics'
+  AND cosine_similarity(pe.embeddings, query_vector) > 0.8
+ORDER BY similarity DESC, p.price ASC;
+
+-- Complex multi-join with tensor operations
+SELECT u.name as user_name,
+       p.name as product_name,
+       p.price,
+       cosine_similarity(ue.embeddings, pe.embeddings) as user_product_similarity,
+       cosine_similarity(ue.embeddings, user_profile) as profile_match
+FROM users u
+JOIN user_embeddings ue ON u.id = ue.user_id
+JOIN product_embeddings pe ON 1=1  -- Cross join for similarity computation
+JOIN products p ON pe.product_id = p.id
+WHERE u.age BETWEEN 25 AND 35
+  AND p.price < 1000
+  AND cosine_similarity(ue.embeddings, pe.embeddings) > 0.6
+ORDER BY user_product_similarity DESC, p.price ASC
+LIMIT 10;
+
+-- Tensor operations
+-- Slice a portion of embeddings for analysis
+SELECT * FROM user_embeddings 
+WHERE slice = [0:100, 0:768];
+
+-- Reshape tensor for different ML models
+SELECT reshape(embeddings, [10000 * 768]) as flattened
+FROM user_embeddings;
+
+-- Mathematical operations on tensors
+SELECT embeddings + bias_vector as biased_embeddings,
+       embeddings * 0.5 as scaled_embeddings
+FROM user_embeddings;
+
+-- Cleanup (for testing)
+-- DROP TABLE IF EXISTS users;
+-- DROP TABLE IF EXISTS products;
+-- DROP TENSOR IF EXISTS user_embeddings;
+-- DROP TENSOR IF EXISTS product_embeddings;
