@@ -38,7 +38,7 @@ func TestNewEngine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := New(tt.config)
+			_, err := CreateEngine(tt.config)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -51,7 +51,7 @@ func TestMemoryEngine(t *testing.T) {
 		Engine: "memory",
 	}
 
-	engine, err := New(cfg)
+	engine, err := CreateEngine(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create memory engine: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestMemoryEngineTables(t *testing.T) {
 		Engine: "memory",
 	}
 
-	engine, err := New(cfg)
+	engine, err := CreateEngine(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create memory engine: %v", err)
 	}
@@ -124,7 +124,7 @@ func TestMemoryEngineTensors(t *testing.T) {
 		Engine: "memory",
 	}
 
-	engine, err := New(cfg)
+	engine, err := CreateEngine(cfg)
 	if err != nil {
 		t.Fatalf("Failed to create memory engine: %v", err)
 	}

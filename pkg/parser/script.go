@@ -97,8 +97,20 @@ func (p *Parser) Parse() (*Script, error) {
 			continue
 		}
 
+		// Handle comment lines
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "--") || strings.HasPrefix(trimmed, "/*") {
+			statements = append(statements, Statement{
+				Text:     line,
+				Position: Position{Line: p.lineNum, Column: 1, Offset: p.lineOffset},
+				Type:     StatementTypeComment,
+			})
+			p.lineOffset += len(line) + 1
+			continue
+		}
+
 		// Handle multi-line statements
-		if strings.HasSuffix(strings.TrimSpace(line), ";") {
+		if strings.HasSuffix(trimmed, ";") {
 			// Single line statement
 			stmtType := p.determineStatementType(line)
 			statements = append(statements, Statement{
@@ -154,24 +166,51 @@ func (p *Parser) Parse() (*Script, error) {
 func (p *Parser) determineStatementType(text string) StatementType {
 	trimmed := strings.TrimSpace(text)
 
+	// Empty lines
+	if trimmed == "" {
+		return StatementTypeEmpty
+	}
+
 	// Comments
 	if strings.HasPrefix(trimmed, "--") || strings.HasPrefix(trimmed, "/*") {
 		return StatementTypeComment
 	}
 
-	// TQL-specific keywords
+	upperText := strings.ToUpper(trimmed)
+
+	// TQL-specific keywords (unambiguous)
 	tqlKeywords := []string{
 		"CREATE TENSOR", "DROP TENSOR", "ALTER TENSOR",
 		"SHOW TENSORS", "DESCRIBE TENSOR",
 		"COSINE_SIMILARITY", "EUCLIDEAN_DISTANCE",
 		"TENSOR_SLICE", "TENSOR_RESHAPE",
+		// Unambiguous tensor operations
+		"TRANSPOSE", "MATRIX_MULTIPLY",
+		"RELU", "SIGMOID", "TANH",
+		"SVD", "EIGENVALUES",
+		"CONV1D", "CONV2D",
+		"ADD", "MULTIPLY",
 	}
 
-	upperText := strings.ToUpper(trimmed)
+	// Check for unambiguous TQL keywords first
 	for _, keyword := range tqlKeywords {
-		if strings.Contains(upperText, keyword) {
+		if strings.HasPrefix(upperText, keyword) {
 			return StatementTypeTQL
 		}
+	}
+
+	// Check if statement contains TQL functions (even if it starts with SELECT)
+	if strings.Contains(upperText, "COSINE_SIMILARITY") ||
+		strings.Contains(upperText, "EUCLIDEAN_DISTANCE") ||
+		strings.Contains(upperText, "TENSOR_SLICE") ||
+		strings.Contains(upperText, "TENSOR_RESHAPE") {
+		return StatementTypeTQL
+	}
+
+	// Special handling for ambiguous operations (SUM, MEAN, MAX, MIN)
+	// These are TQL only if they appear as standalone operations
+	if p.isStandaloneTensorOperation(trimmed) {
+		return StatementTypeTQL
 	}
 
 	// Default to SQL
@@ -248,12 +287,13 @@ func (p *Parser) validateTQLStatement(stmt Statement) error {
 
 	// Validate CREATE TENSOR syntax
 	if strings.Contains(text, "CREATE TENSOR") {
-		re := regexp.MustCompile(`CREATE\s+TENSOR\s+(\w+)\s*\(\s*shape\s*\[([^\]]+)\]\s*,\s*dtype\s+(\w+)`)
+		// Support both single-line and multi-line CREATE TENSOR with optional chunk_size
+		re := regexp.MustCompile(`(?i)CREATE\s+TENSOR\s+(\w+)\s*\(\s*shape\s*\[([^\]]+)\]\s*,\s*dtype\s+(\w+)(?:\s*,\s*chunk_size\s*\[([^\]]+)\])?\s*\)\s*;`)
 		matches := re.FindStringSubmatch(text)
 		if matches == nil {
 			return &ScriptError{
 				Pos:  stmt.Position,
-				Msg:  "Invalid CREATE TENSOR syntax. Expected: CREATE TENSOR name (shape [dims], dtype type)",
+				Msg:  "Invalid CREATE TENSOR syntax. Expected: CREATE TENSOR name (shape [dims], dtype type[, chunk_size [dims]])",
 				Text: stmt.Text,
 			}
 		}
@@ -266,6 +306,95 @@ func (p *Parser) validateTQLStatement(stmt Statement) error {
 				Msg:  "Invalid tensor shape format. Expected comma-separated integers",
 				Text: stmt.Text,
 			}
+		}
+
+		// Validate chunk_size format if present
+		if len(matches) > 4 && matches[4] != "" {
+			chunkStr := matches[4]
+			if !regexp.MustCompile(`^\s*\d+(\s*,\s*\d+)*\s*$`).MatchString(chunkStr) {
+				return &ScriptError{
+					Pos:  stmt.Position,
+					Msg:  "Invalid chunk_size format. Expected comma-separated integers",
+					Text: stmt.Text,
+				}
+			}
+		}
+	}
+
+	// Validate tensor operations
+	if err := p.validateTensorOperation(stmt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// isStandaloneTensorOperation checks if this is a standalone tensor operation
+func (p *Parser) isStandaloneTensorOperation(text string) bool {
+	trimmed := strings.TrimSpace(text)
+
+	// Remove trailing semicolon for checking
+	if strings.HasSuffix(trimmed, ";") {
+		trimmed = strings.TrimSpace(trimmed[:len(trimmed)-1])
+	}
+
+	// Simple pattern: OPERATION(tensor_name) or OPERATION(tensor_name, params)
+	patterns := []string{
+		`^SUM\(\w+\s*(,\s*axis\s*=\s*\d+)?\s*\)$`,
+		`^MEAN\(\w+\s*(,\s*axis\s*=\s*\d+)?\s*\)$`,
+		`^MAX\(\w+\s*(,\s*axis\s*=\s*\d+)?\s*\)$`,
+		`^MIN\(\w+\s*(,\s*axis\s*=\s*\d+)?\s*\)$`,
+	}
+
+	for _, pattern := range patterns {
+		if regexp.MustCompile(`(?i)` + pattern).MatchString(trimmed) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// validateTensorOperation validates tensor operation syntax
+func (p *Parser) validateTensorOperation(stmt Statement) error {
+	text := strings.ToUpper(stmt.Text)
+
+	// Pattern for tensor operations: OPERATION(tensor_name, parameters...)
+	// Order matters - check longer operations first to avoid partial matches
+	operationPatterns := map[string]string{
+		"COSINE_SIMILARITY":  `(?i)COSINE_SIMILARITY\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)`,
+		"EUCLIDEAN_DISTANCE": `(?i)EUCLIDEAN_DISTANCE\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)`,
+		"MATRIX_MULTIPLY":    `(?i)MATRIX_MULTIPLY\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)`,
+		"EIGENVALUES":        `(?i)EIGENVALUES\s*\(\s*(\w+)\s*\)`,
+		"CONV2D":             `(?i)CONV2D\s*\(\s*(\w+)\s*,\s*(\w+)\s*(?:,\s*stride\s*=\s*\[(\d+,\s*\d+)\])?\s*(?:,\s*padding\s*=\s*\[(\d+,\s*\d+)\])?\s*\)`,
+		"CONV1D":             `(?i)CONV1D\s*\(\s*(\w+)\s*,\s*(\w+)\s*(?:,\s*stride\s*=\s*(\d+))?\s*(?:,\s*padding\s*=\s*(\d+))?\s*\)`,
+		"TRANSPOSE":          `(?i)TRANSPOSE\s*\(\s*(\w+)\s*\)`,
+		"SIGMOID":            `(?i)SIGMOID\s*\(\s*(\w+)\s*\)`,
+		"RELU":               `(?i)RELU\s*\(\s*(\w+)\s*\)`,
+		"TANH":               `(?i)TANH\s*\(\s*(\w+)\s*\)`,
+		"SVD":                `(?i)SVD\s*\(\s*(\w+)\s*\)`,
+		"MULTIPLY":           `(?i)MULTIPLY\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)`,
+		"ADD":                `(?i)ADD\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)`,
+		"SUM":                `(?i)SUM\s*\(\s*(\w+)\s*(?:,\s*axis\s*=\s*(\d+))?\s*\)`,
+		"MEAN":               `(?i)MEAN\s*\(\s*(\w+)\s*(?:,\s*axis\s*=\s*(\d+))?\s*\)`,
+		"MAX":                `(?i)MAX\s*\(\s*(\w+)\s*(?:,\s*axis\s*=\s*(\d+))?\s*\)`,
+		"MIN":                `(?i)MIN\s*\(\s*(\w+)\s*(?:,\s*axis\s*=\s*(\d+))?\s*\)`,
+	}
+
+	// Check for exact operation match at the beginning of the statement (after whitespace)
+	trimmed := strings.TrimSpace(text)
+	for operation, pattern := range operationPatterns {
+		if strings.HasPrefix(trimmed, operation) {
+			re := regexp.MustCompile(pattern)
+			matches := re.FindStringSubmatch(text)
+			if matches == nil {
+				return &ScriptError{
+					Pos:  stmt.Position,
+					Msg:  fmt.Sprintf("Invalid %s syntax", operation),
+					Text: stmt.Text,
+				}
+			}
+			return nil // Found matching operation
 		}
 	}
 

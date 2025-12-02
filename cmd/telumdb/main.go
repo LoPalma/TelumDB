@@ -60,7 +60,7 @@ func main() {
 	}
 
 	// Initialize storage engine
-	storageEngine, err := storage.New(cfg.Storage)
+	storageEngine, err := storage.CreateEngine(cfg.Storage)
 	if err != nil {
 		logger.Fatal("Failed to initialize storage engine", zap.Error(err))
 	}

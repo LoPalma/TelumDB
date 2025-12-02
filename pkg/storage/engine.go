@@ -120,13 +120,34 @@ type Range struct {
 }
 
 // Operation represents a tensor operation
-type Operation interface {
-	Apply(data []byte) ([]byte, error)
-	Type() string
+type Operation struct {
+	Type    string
+	Operand interface{}
+	Params  map[string]interface{}
 }
 
-// New creates a new storage engine
-func New(cfg config.StorageConfig) (Engine, error) {
+// OperationType constants
+const (
+	OperationTypeAdd              = "add"
+	OperationTypeMultiply         = "multiply"
+	OperationTypeMatrixMultiply   = "matrix_multiply"
+	OperationTypeTranspose        = "transpose"
+	OperationTypeSum              = "sum"
+	OperationTypeMean             = "mean"
+	OperationTypeMax              = "max"
+	OperationTypeMin              = "min"
+	OperationTypeConv1D           = "conv1d"
+	OperationTypeConv2D           = "conv2d"
+	OperationTypeRelu             = "relu"
+	OperationTypeSigmoid          = "sigmoid"
+	OperationTypeTanh             = "tanh"
+	OperationTypeSVD              = "svd"
+	OperationTypeEigenvalues      = "eigenvalues"
+	OperationTypeCosineSimilarity = "cosine_similarity"
+)
+
+// CreateEngine creates a new storage engine
+func CreateEngine(cfg config.StorageConfig) (Engine, error) {
 	switch cfg.Engine {
 	case "hybrid":
 		return NewHybridEngine(cfg)
