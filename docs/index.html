@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TelumDB - The World's First Hybrid General-Purpose + AI Tensor Database</title>
+    <meta name="description" content="TelumDB seamlessly combines traditional SQL capabilities with native tensor operations. Built for the AI era while maintaining full general-purpose database functionality.">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <h1 class="logo">TelumDB</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#why-telumdb">Why TelumDB</a></li>
+                    <li><a href="#get-started">Get Started</a></li>
+                    <li><a href="getting-started.html">Documentation</a></li>
+                    <li><a href="https://github.com/telumdb/telumdb" class="nav-link-external">GitHub</a></li>
+                </ul>
+                <button class="nav-toggle" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">The World's First Hybrid General-Purpose + AI Tensor Database</h1>
+                    <p class="hero-subtitle">Seamlessly combine traditional SQL capabilities with native tensor operations. Built for the AI era while maintaining full general-purpose database functionality.</p>
+                    <div class="hero-actions">
+                        <a href="#get-started" class="btn btn-primary">Get Started</a>
+                        <a href="https://github.com/telumdb/telumdb" class="btn btn-secondary">View on GitHub</a>
+                    </div>
+                </div>
+                <div class="hero-code">
+                    <div class="code-block">
+                        <pre><code>-- Traditional SQL
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(255),
+    embedding VECTOR(768)
+);
+
+-- Native Tensors
+CREATE TENSOR embeddings (
+    shape [1000, 768],
+    dtype float32
+);
+
+-- Mixed Queries
+SELECT u.name, 
+       cosine_similarity(e.embeddings, query_vector) as similarity
+FROM users u 
+JOIN embeddings e ON u.id = e.user_id
+WHERE similarity > 0.8;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <h2 class="section-title">Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3 class="feature-title">🔄 Hybrid Architecture</h3>
+                        <p class="feature-description">Traditional SQL + Native Tensor Operations in one system</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3 class="feature-title">🧠 AI-Optimized</h3>
+                        <p class="feature-description">Chunked/tiled storage perfect for ML workloads</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3 class="feature-title">⚡ High Performance</h3>
+                        <p class="feature-description">Go core with optimized tensor computation</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3 class="feature-title">🔍 Advanced Querying</h3>
+                        <p class="feature-description">SQL extended with tensor operations</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3 class="feature-title">🌐 Multi-Language</h3>
+                        <p class="feature-description">Python, C, Go, and SQL support</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3 class="feature-title">📦 Production Ready</h3>
+                        <p class="feature-description">ACID transactions, distributed, secure</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="why-telumdb" class="why-telumdb">
+            <div class="container">
+                <h2 class="section-title">Why TelumDB?</h2>
+                <div class="why-content">
+                    <div class="why-text">
+                        <h3>The Problem with Current Solutions</h3>
+                        <p>Modern applications need both traditional data storage and AI/ML capabilities. Today's solutions force you to choose between general-purpose databases (like PostgreSQL) that lack native tensor support, or specialized vector databases that can't handle traditional workloads.</p>
+                        
+                        <h3>The TelumDB Solution</h3>
+                        <p>TelumDB eliminates this compromise by providing a single system that excels at both. Store your user data, transactions, and embeddings in one place. Query them together with familiar SQL syntax enhanced with powerful tensor operations.</p>
+                        
+                        <h3>Real-World Benefits</h3>
+                        <ul class="benefits-list">
+                            <li><strong>Simplified Architecture:</strong> One database instead of multiple specialized systems</li>
+                            <li><strong>Reduced Complexity:</strong> No data synchronization between different storage systems</li>
+                            <li><strong>Lower Costs:</strong> Single system to deploy, maintain, and scale</li>
+                            <li><strong>Better Performance:</strong> Native mixed queries without cross-system joins</li>
+                            <li><strong>Familiar Development:</strong> Use existing SQL knowledge with minimal learning curve</li>
+                        </ul>
+                    </div>
+                    <div class="why-comparison">
+                        <h3>Comparison</h3>
+                        <div class="comparison-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Feature</th>
+                                        <th>TelumDB</th>
+                                        <th>PostgreSQL</th>
+                                        <th>Pinecone</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Traditional SQL</td>
+                                        <td class="check">✓</td>
+                                        <td class="check">✓</td>
+                                        <td class="cross">✗</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Native Tensors</td>
+                                        <td class="check">✓</td>
+                                        <td class="cross">✗</td>
+                                        <td class="check">✓</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Mixed Queries</td>
+                                        <td class="check">✓</td>
+                                        <td class="cross">✗</td>
+                                        <td class="cross">✗</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ACID Transactions</td>
+                                        <td class="check">✓</td>
+                                        <td class="check">✓</td>
+                                        <td class="cross">✗</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="get-started" class="get-started">
+            <div class="container">
+                <h2 class="section-title">Get Started</h2>
+                <div class="get-started-content">
+                    <div class="install-options">
+                        <div class="install-option">
+                            <h3>Option 1: Build from Source</h3>
+                            <div class="code-block">
+                                <pre><code>git clone https://github.com/telumdb/telumdb.git
+cd telumdb
+make build
+./telumdb</code></pre>
+                            </div>
+                        </div>
+                        <div class="install-option">
+                            <h3>Option 2: Docker</h3>
+                            <div class="code-block">
+                                <pre><code>docker run -d \
+  --name telumdb \
+  -p 5432:5432 \
+  -p 8080:8080 \
+  -v telumdb_data:/app/data \
+  telumdb/telumdb:latest</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-start">
+                        <h3>Quick Test</h3>
+                        <p>Start the server, then use the CLI in another terminal:</p>
+                        <div class="code-block">
+                            <pre><code># Start server
+./telumdb
+
+# In another terminal
+./telumdb-cli
+
+# Try these commands
+telumdb> CREATE TABLE users (id INTEGER, name VARCHAR(255));
+telumdb> CREATE TENSOR embeddings (shape [1000, 768], dtype float32);
+telumdb> SHOW TABLES;
+telumdb> SHOW TENSORS;</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div class="next-steps">
+                        <h3>Next Steps</h3>
+                        <div class="steps-grid">
+                            <div class="step">
+                                <h4>1. Read Documentation</h4>
+                                <p>Comprehensive guides and API reference</p>
+                                <a href="getting-started.html" class="btn btn-secondary">View Docs</a>
+                            </div>
+                            <div class="step">
+                                <h4>2. Try Examples</h4>
+                                <p>Sample scripts and use cases</p>
+                                <a href="https://github.com/telumdb/telumdb/tree/main/examples" class="btn btn-secondary">Browse Examples</a>
+                            </div>
+                            <div class="step">
+                                <h4>3. Join Community</h4>
+                                <p>Get help and contribute</p>
+                                <a href="https://github.com/telumdb/telumdb/discussions" class="btn btn-secondary">Join Discussion</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>TelumDB</h4>
+                    <p>The World's First Hybrid General-Purpose + AI Tensor Database</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="getting-started.html">Documentation</a></li>
+                        <li><a href="https://github.com/telumdb/telumdb/tree/main/examples">Examples</a></li>
+                        <li><a href="https://github.com/telumdb/telumdb/releases">Downloads</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="https://github.com/telumdb/telumdb">GitHub</a></li>
+                        <li><a href="https://github.com/telumdb/telumdb/discussions">Discussions</a></li>
+                        <li><a href="https://github.com/telumdb/telumdb/issues">Issues</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 TelumDB Contributors. Licensed under Apache License 2.0.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

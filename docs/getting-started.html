@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started - TelumDB</title>
+    <meta name="description" content="Complete guide to getting started with TelumDB - installation, configuration, and first steps.">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <h1 class="logo"><a href="index.html" style="color: inherit; text-decoration: none;">TelumDB</a></h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html#features">Features</a></li>
+                    <li><a href="index.html#why-telumdb">Why TelumDB</a></li>
+                    <li><a href="index.html#get-started">Get Started</a></li>
+                    <li><a href="getting-started.html" class="nav-link-current">Documentation</a></li>
+                    <li><a href="https://github.com/telumdb/telumdb" class="nav-link-external">GitHub</a></li>
+                </ul>
+                <button class="nav-toggle" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="docs-main">
+        <div class="container">
+            <div class="docs-layout">
+                <aside class="docs-sidebar">
+                    <nav class="docs-nav">
+                        <h3>Table of Contents</h3>
+                        <ul>
+                            <li><a href="#installation">Installation</a></li>
+                            <li><a href="#configuration">Configuration</a></li>
+                            <li><a href="#basic-usage">Basic Usage</a></li>
+                            <li><a href="#sql-operations">SQL Operations</a></li>
+                            <li><a href="#tensor-operations">Tensor Operations</a></li>
+                            <li><a href="#mixed-queries">Mixed Queries</a></li>
+                            <li><a href="#troubleshooting">Troubleshooting</a></li>
+                        </ul>
+                    </nav>
+                </aside>
+                
+                <div class="docs-content">
+                    <h1>Getting Started with TelumDB</h1>
+                    
+                    <section id="installation">
+                        <h2>Installation</h2>
+                        
+                        <h3>Option 1: Build from Source</h3>
+                        <p>Build TelumDB from source for the latest features:</p>
+                        <div class="code-block">
+                            <pre><code># Clone the repository
+git clone https://github.com/telumdb/telumdb.git
+cd telumdb
+
+# Build the binaries
+make build
+
+# Verify installation
+./telumdb -version
+./telumdb-cli -version</code></pre>
+                        </div>
+                        
+                        <h3>Option 2: Docker</h3>
+                        <p>Run TelumDB in a Docker container:</p>
+                        <div class="code-block">
+                            <pre><code># Pull the latest image
+docker pull telumdb/telumdb:latest
+
+# Run the container
+docker run -d \
+  --name telumdb \
+  -p 5432:5432 \
+  -p 8080:8080 \
+  -v telumdb_data:/app/data \
+  telumdb/telumdb:latest</code></pre>
+                        </div>
+                        
+                        <h3>Option 3: Binary Download</h3>
+                        <p>Download pre-compiled binaries for your platform:</p>
+                        <div class="code-block">
+                            <pre><code># Linux (AMD64)
+wget https://github.com/telumdb/telumdb/releases/latest/download/telumdb-linux-amd64
+chmod +x telumdb-linux-amd64
+
+# macOS (AMD64)
+wget https://github.com/telumdb/telumdb/releases/latest/download/telumdb-darwin-amd64
+chmod +x telumdb-darwin-amd64
+
+# Windows (AMD64)
+# Download telumdb-windows-amd64.exe from releases page</code></pre>
+                        </div>
+                    </section>
+                    
+                    <section id="configuration">
+                        <h2>Configuration</h2>
+                        <p>TelumDB uses a YAML configuration file. Create a <code>config.yaml</code> file:</p>
+                        <div class="code-block">
+                            <pre><code>server:
+  host: "0.0.0.0"
+  port: 5432
+  http_port: 8080
+  max_connections: 1000
+
+storage:
+  data_dir: "./data"
+  engine: "hybrid"
+  cache_size: 1073741824  # 1GB
+  tensor:
+    chunk_size: [64, 64, 64]
+    default_dtype: "float32"
+    memory_limit: 4294967296  # 4GB
+
+logging:
+  level: "info"
+  format: "json"
+  output: "stdout"
+
+metrics:
+  enabled: true
+  port: 9000</code></pre>
+                        </div>
+                        
+                        <h3>Environment Variables</h3>
+                        <p>You can also configure TelumDB using environment variables:</p>
+                        <div class="code-block">
+                            <pre><code>export TELUMDB_CONFIG_FILE=/path/to/config.yaml
+export TELUMDB_DATA_DIR=/path/to/data
+export TELUMDB_LOG_LEVEL=debug
+export TELUMDB_PORT=5432</code></pre>
+                        </div>
+                    </section>
+                    
+                    <section id="basic-usage">
+                        <h2>Basic Usage</h2>
+                        
+                        <h3>Starting the Server</h3>
+                        <p>Start the TelumDB server:</p>
+                        <div class="code-block">
+                            <pre><code># Use default configuration
+./telumdb
+
+# Use custom configuration
+./telumdb -config /path/to/config.yaml
+
+# Check version
+./telumdb -version</code></pre>
+                        </div>
+                        
+                        <p>The server will start on:</p>
+                        <ul>
+                            <li>Database protocol: <code>localhost:5432</code></li>
+                            <li>HTTP API: <code>localhost:8080</code></li>
+                            <li>Metrics: <code>localhost:9000</code></li>
+                        </ul>
+                        
+                        <h3>Using the CLI</h3>
+                        <p>Connect to TelumDB using the CLI tool:</p>
+                        <div class="code-block">
+                            <pre><code># Interactive mode
+./telumdb-cli
+
+# Execute single command
+./telumdb-cli -c "SHOW TABLES"
+
+# Execute script file
+./telumdb-cli -f script.tql
+
+# Connect to remote server
+./telumdb-cli -url telumdb://remote-host:5432</code></pre>
+                        </div>
+                    </section>
+                    
+                    <section id="sql-operations">
+                        <h2>SQL Operations</h2>
+                        <p>TelumDB supports standard SQL operations for traditional data:</p>
+                        
+                        <h3>Create Tables</h3>
+                        <div class="code-block">
+                            <pre><code>CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE,
+    age INTEGER,
+    department VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+                        </div>
+                        
+                        <h3>Insert Data</h3>
+                        <div class="code-block">
+                            <pre><code>INSERT INTO users (name, email, age, department) VALUES
+    ('Alice Johnson', 'alice@company.com', 30, 'Engineering'),
+    ('Bob Smith', 'bob@company.com', 25, 'Marketing'),
+    ('Charlie Brown', 'charlie@company.com', 35, 'Engineering');</code></pre>
+                        </div>
+                        
+                        <h3>Query Data</h3>
+                        <div class="code-block">
+                            <pre><code>-- Basic SELECT
+SELECT * FROM users WHERE age > 25;
+
+-- Complex query with JOINs
+SELECT u.name, u.department, COUNT(o.id) as order_count
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+WHERE u.created_at >= '2023-01-01'
+GROUP BY u.id, u.name, u.department
+ORDER BY order_count DESC;</code></pre>
+                        </div>
+                    </section>
+                    
+                    <section id="tensor-operations">
+                        <h2>Tensor Operations</h2>
+                        <p>TelumDB provides native tensor operations for AI/ML workloads:</p>
+                        
+                        <h3>Create Tensors</h3>
+                        <div class="code-block">
+                            <pre><code>CREATE TENSOR user_embeddings (
+    shape [10000, 768],
+    dtype float32,
+    chunk_size [1000, 768]
+);
+
+CREATE TENSOR model_weights (
+    shape [768, 256],
+    dtype float32,
+    chunk_size [768, 256]
+);</code></pre>
+                        </div>
+                        
+                        <h3>Tensor Operations</h3>
+                        <div class="code-block">
+                            <pre><code>-- Mathematical operations
+ADD(embeddings, bias_vector);
+MULTIPLY(embeddings, scale_factor);
+MATRIX_MULTIPLY(embeddings, weights);
+
+-- Linear algebra
+TRANSPOSE(embeddings);
+SVD(covariance_matrix);
+EIGENVALUES(correlation_matrix);
+
+-- Reductions
+SUM(embeddings, axis=0);
+MEAN(embeddings, axis=1);
+MAX(embeddings);
+MIN(embeddings);
+
+-- Activation functions
+RELU(hidden_layer);
+SIGMOID(output_layer);
+TANH(activation_layer);
+
+-- Convolution
+CONV1D(input_signal, kernel_1d, stride=2, padding=1);
+CONV2D(input_image, kernel_2d, stride=[2,2], padding=[1,1]);
+
+-- Similarity
+COSINE_SIMILARITY(vector_a, vector_b);</code></pre>
+                        </div>
+                    </section>
+                    
+                    <section id="mixed-queries">
+                        <h2>Mixed Queries</h2>
+                        <p>The power of TelumDB comes from combining SQL and tensor operations:</p>
+                        
+                        <h3>Similarity Search</h3>
+                        <div class="code-block">
+                            <pre><code>-- Find users with similar embeddings
+SELECT u.name, u.email, u.department,
+       cosine_similarity(ue.embeddings, query_vector) as similarity
+FROM users u
+JOIN user_embeddings ue ON u.id = ue.user_id
+WHERE u.department = 'Engineering'
+  AND cosine_similarity(ue.embeddings, query_vector) > 0.8
+ORDER BY similarity DESC
+LIMIT 10;</code></pre>
+                        </div>
+                        
+                        <h3>Product Recommendations</h3>
+                        <div class="code-block">
+                            <pre><code>-- Recommend products based on user embeddings
+SELECT p.name, p.category, p.price,
+       cosine_similarity(pe.embeddings, user_profile) as similarity
+FROM products p
+JOIN product_embeddings pe ON p.id = pe.product_id
+WHERE p.category = 'Electronics'
+  AND cosine_similarity(pe.embeddings, user_profile) > 0.7
+ORDER BY similarity DESC, p.price ASC
+LIMIT 5;</code></pre>
+                        </div>
+                        
+                        <h3>Complex Analytics</h3>
+                        <div class="code-block">
+                            <pre><code>-- User segmentation with tensor clustering
+SELECT u.department,
+       AVG(cosine_similarity(ue.embeddings, dept_centroid)) as avg_similarity,
+       COUNT(*) as user_count
+FROM users u
+JOIN user_embeddings ue ON u.id = ue.user_id
+GROUP BY u.department
+HAVING COUNT(*) > 5
+ORDER BY avg_similarity DESC;</code></pre>
+                        </div>
+                    </section>
+                    
+                    <section id="troubleshooting">
+                        <h2>Troubleshooting</h2>
+                        
+                        <h3>Connection Issues</h3>
+                        <p><strong>Problem:</strong> "Connection refused" error</p>
+                        <p><strong>Solution:</strong> Make sure the TelumDB server is running:</p>
+                        <div class="code-block">
+                            <pre><code># Check if server is running
+./telumdb
+
+# In another terminal, test connection
+./telumdb-cli -c "SELECT 1"</code></pre>
+                        </div>
+                        
+                        <h3>Port Conflicts</h3>
+                        <p><strong>Problem:</strong> "Address already in use" error</p>
+                        <p><strong>Solution:</strong> Change the port in configuration:</p>
+                        <div class="code-block">
+                            <pre><code>server:
+  port: 5433  # Use different port</code></pre>
+                        </div>
+                        
+                        <h3>Permission Issues</h3>
+                        <p><strong>Problem:</strong> "Permission denied" error</p>
+                        <p><strong>Solution:</strong> Check data directory permissions:</p>
+                        <div class="code-block">
+                            <pre><code># Create data directory with proper permissions
+mkdir -p ./data
+chmod 755 ./data
+
+# Or specify different data directory
+./telumdb -config config.yaml</code></pre>
+                        </div>
+                        
+                        <h3>Getting Help</h3>
+                        <p>If you encounter issues:</p>
+                        <ul>
+                            <li>Check the <a href="https://github.com/telumdb/telumdb/issues">GitHub Issues</a></li>
+                            <li>Join the <a href="https://github.com/telumdb/telumdb/discussions">GitHub Discussions</a></li>
+                            <li>Review the <a href="https://github.com/telumdb/telumdb/tree/main/examples">examples</a></li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>TelumDB</h4>
+                    <p>The World's First Hybrid General-Purpose + AI Tensor Database</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="getting-started.html">Documentation</a></li>
+                        <li><a href="https://github.com/telumdb/telumdb/tree/main/examples">Examples</a></li>
+                        <li><a href="https://github.com/telumdb/telumdb/releases">Downloads</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="https://github.com/telumdb/telumdb">GitHub</a></li>
+                        <li><a href="https://github.com/telumdb/telumdb/discussions">Discussions</a></li>
+                        <li><a href="https://github.com/telumdb/telumdb/issues">Issues</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 TelumDB Contributors. Licensed under Apache License 2.0.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
