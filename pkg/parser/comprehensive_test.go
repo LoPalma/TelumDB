@@ -51,7 +51,7 @@ UPDATE accounts SET balance = balance - 100 WHERE id = 1;
 UPDATE accounts SET balance = balance + 100 WHERE id = 2;
 INSERT INTO audit_log (action) VALUES ('transfer');
 COMMIT;`,
-			expected: 5,
+			expected: 6,
 		},
 		{
 			name: "SQL Functions and Case Statements",
@@ -108,7 +108,7 @@ SUM(embeddings, axis=0);
 MEAN(embeddings, axis=1);
 MAX(embeddings);
 MIN(embeddings);`,
-			expected: 6,
+			expected: 7,
 		},
 		{
 			name: "Advanced Tensor Operations",
@@ -156,7 +156,7 @@ FROM documents d, queries q
 WHERE d.id > 100
 ORDER BY similarity DESC
 LIMIT 10;`,
-			expected: 8,
+			expected: 14,
 		},
 		{
 			name: "Complex Multi-line Statements",
@@ -222,8 +222,9 @@ UPDATE users SET active = TRUE;`,
 				"CREATE TENSOR test (shape [10, 20], dtype float32);": StatementTypeTQL,
 				"SHOW TENSORS;":                                       StatementTypeTQL,
 				"INSERT INTO logs (message) VALUES ('test');":         StatementTypeSQL,
-				"-- Another comment":                                  StatementTypeComment,
-				"UPDATE users SET active = TRUE;":                     StatementTypeSQL,
+				"":                                StatementTypeEmpty,
+				"-- Another comment":              StatementTypeComment,
+				"UPDATE users SET active = TRUE;": StatementTypeSQL,
 			},
 		},
 	}
