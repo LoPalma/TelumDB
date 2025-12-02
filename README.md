@@ -168,7 +168,7 @@ Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 <div align="center">
 
 **⭐ Star us on GitHub!**  
-[https://github.com/telumdb/telumdb](https://github.com/telumdb/telumdb)
+[https://github.com/telumdb/telumdb](https://github.com/LoPalma/TelumDB)
 
 Made with ❤️ by the TelumDB team
 
