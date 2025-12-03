@@ -42,9 +42,15 @@ func New(cfg *Config) (*Client, error) {
 
 // Connect connects to the database server
 func (c *Client) Connect(ctx context.Context) error {
-	conn, err := net.DialTimeout("tcp", c.config.ServerURL, c.config.Timeout)
+	// Parse the server URL to extract connection parameters
+	params, err := ParseURL(c.config.ServerURL)
 	if err != nil {
-		return fmt.Errorf("failed to connect to server: %w", err)
+		return fmt.Errorf("failed to parse server URL: %w", err)
+	}
+
+	conn, err := net.DialTimeout("tcp", params.Address(), c.config.Timeout)
+	if err != nil {
+		return fmt.Errorf("failed to connect to server at %s: %w", params.Address(), err)
 	}
 
 	c.conn = conn

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TelumDB Reference Manual</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <style>
+        .reference-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .reference-sidebar {
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+        }
+        
+        .reference-nav {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .reference-nav h3 {
+            margin: 0 0 1rem 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .reference-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .reference-nav li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .reference-nav a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: block;
+            padding: 0.25rem 0;
+        }
+        
+        .reference-nav a:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        
+        .reference-content {
+            max-width: none;
+        }
+        
+        .syntax-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .syntax-section h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        
+        .syntax-section h3 {
+            color: #34495e;
+            margin-top: 2rem;
+        }
+        
+        .syntax-box {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .example-box {
+            background: #e8f5e8;
+            border-left: 4px solid #27ae60;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .note-box {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .operation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .operation-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .operation-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #2c3e50;
+        }
+        
+        .data-type-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        .data-type-table th,
+        .data-type-table td {
+            border: 1px solid #dee2e6;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        
+        .data-type-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .reference-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .reference-sidebar {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>TelumDB Reference Manual</h1>
+            <p class="subtitle">Complete SQL/TQL Syntax and API Reference</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="reference-grid">
+            <aside class="reference-sidebar">
+                <nav class="reference-nav">
+                    <h3>Navigation</h3>
+                    <ul>
+                        <li><a href="#sql-syntax">SQL Syntax</a></li>
+                        <li><a href="#tql-syntax">TQL (Tensor Query Language)</a></li>
+                        <li><a href="#data-types">Data Types</a></li>
+                        <li><a href="#tensor-operations">Tensor Operations</a></li>
+                        <li><a href="#meta-commands">Meta Commands</a></li>
+                        <li><a href="#connection-urls">Connection URLs</a></li>
+                        <li><a href="#error-codes">Error Codes</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <div class="reference-content">
+                <!-- SQL Syntax Section -->
+                <section id="sql-syntax" class="syntax-section">
+                    <h2>SQL Syntax</h2>
+                    <p>TelumDB supports standard SQL commands for traditional relational data operations.</p>
+                    
+                    <h3>Data Definition Language (DDL)</h3>
+                    
+                    <h4>CREATE TABLE</h4>
+                    <div class="syntax-box">
+CREATE TABLE table_name (
+    column_name data_type [NULL | NOT NULL] [DEFAULT default_value],
+    ...
+);
+                    </div>
+                    <div class="example-box">
+CREATE TABLE users (
+    id INTEGER NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+                    </div>
+                    
+                    <h4>DROP TABLE</h4>
+                    <div class="syntax-box">
+DROP TABLE table_name;
+                    </div>
+                    
+                    <h3>Data Manipulation Language (DML)</h3>
+                    
+                    <h4>INSERT</h4>
+                    <div class="syntax-box">
+INSERT INTO table_name (column1, column2, ...) VALUES (value1, value2, ...);
+                    </div>
+                    
+                    <h4>SELECT</h4>
+                    <div class="syntax-box">
+SELECT column1, column2, ... FROM table_name [WHERE condition] [ORDER BY column] [LIMIT n];
+                    </div>
+                    
+                    <h4>UPDATE</h4>
+                    <div class="syntax-box">
+UPDATE table_name SET column1 = value1, column2 = value2, ... [WHERE condition];
+                    </div>
+                    
+                    <h4>DELETE</h4>
+                    <div class="syntax-box">
+DELETE FROM table_name [WHERE condition];
+                    </div>
+                    
+                    <h3>Utility Commands</h3>
+                    
+                    <h4>SHOW TABLES</h4>
+                    <div class="syntax-box">
+SHOW TABLES;
+                    </div>
+                    
+                    <h4>DESCRIBE</h4>
+                    <div class="syntax-box">
+DESCRIBE table_name;
+                    </div>
+                </section>
+
+                <!-- TQL Syntax Section -->
+                <section id="tql-syntax" class="syntax-section">
+                    <h2>TQL (Tensor Query Language)</h2>
+                    <p>TelumDB Query Language extends SQL with specialized tensor operations for machine learning and scientific computing.</p>
+                    
+                    <h3>Tensor Definition</h3>
+                    
+                    <h4>CREATE TENSOR</h4>
+                    <div class="syntax-box">
+CREATE TENSOR tensor_name (
+    shape [dim1, dim2, ...],
+    dtype data_type
+    [, chunk_size [chunk1, chunk2, ...]]
+);
+                    </div>
+                    <div class="example-box">
+CREATE TENSOR embeddings (
+    shape [1000, 768],
+    dtype float32,
+    chunk_size [100, 768]
+);
+                    </div>
+                    
+                    <div class="note-box">
+                        <strong>Note:</strong> Chunk size is optional but recommended for large tensors to optimize memory usage and I/O operations.
+                    </div>
+                    
+                    <h4>DROP TENSOR</h4>
+                    <div class="syntax-box">
+DROP TENSOR tensor_name;
+                    </div>
+                    
+                    <h3>Tensor Information</h3>
+                    
+                    <h4>SHOW TENSORS</h4>
+                    <div class="syntax-box">
+SHOW TENSORS;
+                    </div>
+                    
+                    <h4>DESCRIBE TENSOR</h4>
+                    <div class="syntax-box">
+DESCRIBE TENSOR tensor_name;
+                    </div>
+                    
+                    <h3>Tensor Operations</h3>
+                    <p>Tensor operations can be used as standalone statements or within SELECT queries.</p>
+                    
+                    <div class="syntax-box">
+OPERATION(tensor_name [, parameters...]);
+                    </div>
+                    
+                    <div class="example-box">
+-- Standalone operations
+SUM(embeddings, axis=1);
+MEAN(embeddings);
+MAX(embeddings, axis=0);
+
+-- In queries
+SELECT COSINE_SIMILARITY(vec1, vec2) FROM vectors;
+                    </div>
+                </section>
+
+                <!-- Data Types Section -->
+                <section id="data-types" class="syntax-section">
+                    <h2>Data Types</h2>
+                    
+                    <h3>SQL Data Types</h3>
+                    <table class="data-type-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>INTEGER</td>
+                                <td>32-bit signed integer</td>
+                                <td>42</td>
+                            </tr>
+                            <tr>
+                                <td>BIGINT</td>
+                                <td>64-bit signed integer</td>
+                                <td>9223372036854775807</td>
+                            </tr>
+                            <tr>
+                                <td>REAL</td>
+                                <td>32-bit floating point</td>
+                                <td>3.14159</td>
+                            </tr>
+                            <tr>
+                                <td>DOUBLE</td>
+                                <td>64-bit floating point</td>
+                                <td>3.14159265359</td>
+                            </tr>
+                            <tr>
+                                <td>VARCHAR(n)</td>
+                                <td>Variable-length string</td>
+                                <td>'hello world'</td>
+                            </tr>
+                            <tr>
+                                <td>TEXT</td>
+                                <td>Unlimited text</td>
+                                <td>'long text...'</td>
+                            </tr>
+                            <tr>
+                                <td>BOOLEAN</td>
+                                <td>True/false values</td>
+                                <td>TRUE, FALSE</td>
+                            </tr>
+                            <tr>
+                                <td>TIMESTAMP</td>
+                                <td>Date and time</td>
+                                <td>'2024-01-01 12:00:00'</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h3>Tensor Data Types</h3>
+                    <table class="data-type-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Size</th>
+                                <th>Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>float32</td>
+                                <td>32-bit floating point</td>
+                                <td>4 bytes</td>
+                                <td>General ML, neural networks</td>
+                            </tr>
+                            <tr>
+                                <td>float64</td>
+                                <td>64-bit floating point</td>
+                                <td>8 bytes</td>
+                                <td>Scientific computing, high precision</td>
+                            </tr>
+                            <tr>
+                                <td>int32</td>
+                                <td>32-bit signed integer</td>
+                                <td>4 bytes</td>
+                                <td>Indices, categorical data</td>
+                            </tr>
+                            <tr>
+                                <td>int64</td>
+                                <td>64-bit signed integer</td>
+                                <td>8 bytes</td>
+                                <td>Large indices, timestamps</td>
+                            </tr>
+                            <tr>
+                                <td>bool</td>
+                                <td>Boolean values</td>
+                                <td>1 byte</td>
+                                <td>Binary masks, flags</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Tensor Operations Section -->
+                <section id="tensor-operations" class="syntax-section">
+                    <h2>Tensor Operations</h2>
+                    
+                    <h3>Mathematical Operations</h3>
+                    <div class="operation-grid">
+                        <div class="operation-card">
+                            <h4>ADD(tensor1, tensor2)</h4>
+                            <p>Element-wise addition with broadcasting support</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>MULTIPLY(tensor1, tensor2)</h4>
+                            <p>Element-wise multiplication with broadcasting support</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>MATRIX_MULTIPLY(tensor1, tensor2)</h4>
+                            <p>Matrix multiplication for 2D tensors</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>TRANSPOSE(tensor)</h4>
+                            <p>Transpose operation for 2D tensors</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Reduction Operations</h3>
+                    <div class="operation-grid">
+                        <div class="operation-card">
+                            <h4>SUM(tensor[, axis=n])</h4>
+                            <p>Sum of elements along specified axis (default: all)</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>MEAN(tensor[, axis=n])</h4>
+                            <p>Mean of elements along specified axis (default: all)</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>MAX(tensor[, axis=n])</h4>
+                            <p>Maximum value along specified axis (default: all)</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>MIN(tensor[, axis=n])</h4>
+                            <p>Minimum value along specified axis (default: all)</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Activation Functions</h3>
+                    <div class="operation-grid">
+                        <div class="operation-card">
+                            <h4>RELU(tensor)</h4>
+                            <p>Rectified Linear Unit: max(0, x)</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>SIGMOID(tensor)</h4>
+                            <p>Sigmoid activation: 1/(1 + e^(-x))</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>TANH(tensor)</h4>
+                            <p>Hyperbolic tangent activation</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Convolution Operations</h3>
+                    <div class="operation-grid">
+                        <div class="operation-card">
+                            <h4>CONV1D(input, kernel[, stride=n][, padding=n])</h4>
+                            <p>1D convolution with optional stride and padding</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>CONV2D(input, kernel[, stride=[h,w]][, padding=[h,w]])</h4>
+                            <p>2D convolution with optional stride and padding</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Linear Algebra</h3>
+                    <div class="operation-grid">
+                        <div class="operation-card">
+                            <h4>SVD(tensor)</h4>
+                            <p>Singular Value Decomposition</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>EIGENVALUES(tensor)</h4>
+                            <p>Eigenvalue computation for square matrices</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>COSINE_SIMILARITY(tensor1, tensor2)</h4>
+                            <p>Cosine similarity between two tensors</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>EUCLIDEAN_DISTANCE(tensor1, tensor2)</h4>
+                            <p>Euclidean distance between two tensors</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Tensor Manipulation</h3>
+                    <div class="operation-grid">
+                        <div class="operation-card">
+                            <h4>TENSOR_SLICE(tensor, ranges...)</h4>
+                            <p>Extract slice along specified dimensions</p>
+                        </div>
+                        <div class="operation-card">
+                            <h4>TENSOR_RESHAPE(tensor, new_shape)</h4>
+                            <p>Reshape tensor to new dimensions</p>
+                        </div>
+                    </div>
+                    
+                    <div class="example-box">
+                        <h4>Operation Examples</h4>
+                        <pre style="margin: 0; font-family: monospace;">
+-- Create tensors
+CREATE TENSOR A (shape [3, 4], dtype float32);
+CREATE TENSOR B (shape [4, 2], dtype float32);
+
+-- Matrix multiplication
+MATRIX_MULTIPLY(A, B);
+
+-- Element-wise operations
+ADD(A, B);
+MULTIPLY(A, 2.5);
+
+-- Reductions
+SUM(A, axis=1);  -- Sum along columns
+MEAN(A);         -- Global mean
+
+-- Activation functions
+RELU(A);
+SIGMOID(A);
+
+-- Convolution
+CONV2D(input_tensor, kernel_tensor, stride=[2,2], padding=[1,1]);
+
+-- Similarity
+COSINE_SIMILARITY(vec1, vec2);
+EUCLIDEAN_DISTANCE(point1, point2);
+                        </pre>
+                    </div>
+                </section>
+
+                <!-- Meta Commands Section -->
+                <section id="meta-commands" class="syntax-section">
+                    <h2>Meta Commands</h2>
+                    <p>Meta commands are CLI-specific commands that start with backslash (\) and provide database management utilities.</p>
+                    
+                    <table class="data-type-table">
+                        <thead>
+                            <tr>
+                                <th>Command</th>
+                                <th>Alias</th>
+                                <th>Description</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>\help</td>
+                                <td>\h</td>
+                                <td>Show help message</td>
+                                <td>\help</td>
+                            </tr>
+                            <tr>
+                                <td>\quit</td>
+                                <td>\q</td>
+                                <td>Exit the CLI</td>
+                                <td>\quit</td>
+                            </tr>
+                            <tr>
+                                <td>\list</td>
+                                <td>\l</td>
+                                <td>List all databases</td>
+                                <td>\list</td>
+                            </tr>
+                            <tr>
+                                <td>\tables</td>
+                                <td>\dt</td>
+                                <td>List all tables</td>
+                                <td>\tables</td>
+                            </tr>
+                            <tr>
+                                <td>\tensors</td>
+                                <td>\dT</td>
+                                <td>List all tensors</td>
+                                <td>\tensors</td>
+                            </tr>
+                            <tr>
+                                <td>\describe</td>
+                                <td>\d</td>
+                                <td>Describe table or tensor</td>
+                                <td>\describe users</td>
+                            </tr>
+                            <tr>
+                                <td>\connect</td>
+                                <td>\c</td>
+                                <td>Connect to database</td>
+                                <td>\connect mydb</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Connection URLs Section -->
+                <section id="connection-urls" class="syntax-section">
+                    <h2>Connection URLs</h2>
+                    <p>TelumDB uses URL-style connection strings for database connections.</p>
+                    
+                    <h3>URL Format</h3>
+                    <div class="syntax-box">
+telumdb://[user[:password]@]host[:port][/database][?parameter=value&...]
+                    </div>
+                    
+                    <h3>Components</h3>
+                    <table class="data-type-table">
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>scheme</td>
+                                <td>Yes</td>
+                                <td>Always "telumdb"</td>
+                                <td>telumdb</td>
+                            </tr>
+                            <tr>
+                                <td>user</td>
+                                <td>No</td>
+                                <td>Username for authentication</td>
+                                <td>admin</td>
+                            </tr>
+                            <tr>
+                                <td>password</td>
+                                <td>No</td>
+                                <td>Password for authentication</td>
+                                <td>secret123</td>
+                            </tr>
+                            <tr>
+                                <td>host</td>
+                                <td>Yes</td>
+                                <td>Server hostname or IP</td>
+                                <td>localhost</td>
+                            </tr>
+                            <tr>
+                                <td>port</td>
+                                <td>No</td>
+                                <td>Server port (default: 5432)</td>
+                                <td>5432</td>
+                            </tr>
+                            <tr>
+                                <td>database</td>
+                                <td>No</td>
+                                <td>Database name</td>
+                                <td>mydb</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h3>Examples</h3>
+                    <div class="example-box">
+                        <h4>Basic Connection</h4>
+                        <div class="syntax-box">telumdb://localhost:5432</div>
+                        
+                        <h4>With Authentication</h4>
+                        <div class="syntax-box">telumdb://user:password@localhost:5432</div>
+                        
+                        <h4>With Database</h4>
+                        <div class="syntax-box">telumdb://user:password@localhost:5432/mydb</div>
+                        
+                        <h4>Remote Server</h4>
+                        <div class="syntax-box">telumdb://admin@db.example.com:5432/production</div>
+                    </div>
+                </section>
+
+                <!-- Error Codes Section -->
+                <section id="error-codes" class="syntax-section">
+                    <h2>Error Codes</h2>
+                    <p>Common error codes and their meanings in TelumDB.</p>
+                    
+                    <table class="data-type-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Message</th>
+                                <th>Cause</th>
+                                <th>Solution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Connection Error</td>
+                                <td>"failed to connect to server"</td>
+                                <td>Server not running or wrong host/port</td>
+                                <td>Check server status and connection URL</td>
+                            </tr>
+                            <tr>
+                                <td>Parse Error</td>
+                                <td>"Statement must end with semicolon"</td>
+                                <td>Missing semicolon in SQL/TQL</td>
+                                <td>Add semicolon at end of statement</td>
+                            </tr>
+                            <tr>
+                                <td>Validation Error</td>
+                                <td>"Invalid tensor shape format"</td>
+                                <td>Malformed CREATE TENSOR syntax</td>
+                                <td>Use comma-separated integers for shape</td>
+                            </tr>
+                            <tr>
+                                <td>Runtime Error</td>
+                                <td>"tensor dimensions incompatible"</td>
+                                <td>Operation shape mismatch</td>
+                                <td>Check tensor shapes before operations</td>
+                            </tr>
+                            <tr>
+                                <td>Memory Error</td>
+                                <td>"slice too large"</td>
+                                <td>Requested slice exceeds limits</td>
+                                <td>Use smaller slice or increase limits</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 TelumDB. Licensed under Apache License 2.0.</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/telumdb/telumdb/internal/cli"
 	"github.com/telumdb/telumdb/internal/client"
 	"github.com/telumdb/telumdb/pkg/parser"
 )
@@ -52,18 +53,18 @@ func main() {
 	}
 
 	// Initialize client
-	cli, err := client.New(clientConfig)
+	dbClient, err := client.New(clientConfig)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: Failed to create client: %v\n", err)
 		os.Exit(1)
 	}
-	defer cli.Close()
+	defer dbClient.Close()
 
 	ctx := context.Background()
 
 	// Execute single command if provided
 	if *command != "" {
-		if err := executeCommand(ctx, cli, *command); err != nil {
+		if err := executeCommand(ctx, dbClient, *command); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
@@ -72,7 +73,7 @@ func main() {
 
 	// Execute commands from file if provided
 	if *file != "" {
-		if err := executeFileBatch(ctx, cli, *file, *batch, *verbose); err != nil {
+		if err := executeFileBatch(ctx, dbClient, *file, *batch, *verbose); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
@@ -80,7 +81,7 @@ func main() {
 	}
 
 	// Interactive mode
-	runInteractive(ctx, cli)
+	runInteractive(ctx, dbClient)
 }
 
 func executeCommand(ctx context.Context, cli *client.Client, command string) error {
@@ -151,39 +152,29 @@ func executeFileBatch(ctx context.Context, cli *client.Client, filename string, 
 	return nil
 }
 
-func runInteractive(ctx context.Context, cli *client.Client) {
-	fmt.Printf("TelumDB CLI %s\n", version)
-	fmt.Printf("Connected to %s\n", cli.Config().ServerURL)
-	fmt.Println("Type '\\h' for help, '\\q' to quit.")
+func runInteractive(ctx context.Context, dbClient *client.Client) {
+	// Create REPL configuration
+	homeDir, _ := os.UserHomeDir()
+	historyFile := filepath.Join(homeDir, ".telumdb_history")
 
-	scanner := bufio.NewScanner(os.Stdin)
-	for {
-		fmt.Print("telumdb> ")
-		if !scanner.Scan() {
-			break
-		}
-
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-
-		// Handle meta commands
-		if strings.HasPrefix(line, "\\") {
-			if err := handleMetaCommand(line, cli); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			}
-			continue
-		}
-
-		// Execute SQL/TQL command
-		if err := executeCommand(ctx, cli, line); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		}
+	config := &cli.Config{
+		HistoryFile: historyFile,
+		Prompt:      "telumdb> ",
+		Continue:    "... ",
+		MaxHistory:  1000,
 	}
 
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading input: %v\n", err)
+	// Create and run REPL
+	repl, err := cli.NewREPL(ctx, dbClient, config)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Failed to create REPL: %v\n", err)
+		os.Exit(1)
+	}
+	defer repl.Close()
+
+	if err := repl.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: REPL failed: %v\n", err)
+		os.Exit(1)
 	}
 }
 

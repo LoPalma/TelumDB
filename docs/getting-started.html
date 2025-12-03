@@ -6,6 +6,7 @@
     <title>Getting Started - TelumDB</title>
     <meta name="description" content="Complete guide to getting started with TelumDB - installation, configuration, and first steps.">
     <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -60,11 +61,11 @@
                         <h3>Option 1: Build from Source</h3>
                         <p>Build TelumDB from source for the latest features:</p>
                         <div class="code-block">
-                            <pre><code># Clone the repository
+                            <pre><code class="language-bash"># Clone repository
 git clone https://github.com/telumdb/telumdb.git
 cd telumdb
 
-# Build the binaries
+# Build binaries
 make build
 
 # Verify installation
@@ -75,10 +76,10 @@ make build
                         <h3>Option 2: Docker</h3>
                         <p>Run TelumDB in a Docker container:</p>
                         <div class="code-block">
-                            <pre><code># Pull the latest image
+                            <pre><code class="language-bash"># Pull latest image
 docker pull telumdb/telumdb:latest
 
-# Run the container
+# Run container
 docker run -d \
   --name telumdb \
   -p 5432:5432 \
@@ -90,7 +91,7 @@ docker run -d \
                         <h3>Option 3: Binary Download</h3>
                         <p>Download pre-compiled binaries for your platform:</p>
                         <div class="code-block">
-                            <pre><code># Linux (AMD64)
+                            <pre><code class="language-bash"># Linux (AMD64)
 wget https://github.com/telumdb/telumdb/releases/latest/download/telumdb-linux-amd64
 chmod +x telumdb-linux-amd64
 
@@ -107,7 +108,7 @@ chmod +x telumdb-darwin-amd64
                         <h2>Configuration</h2>
                         <p>TelumDB uses a YAML configuration file. Create a <code>config.yaml</code> file:</p>
                         <div class="code-block">
-                            <pre><code>server:
+                            <pre><code class="language-yaml">server:
   host: "0.0.0.0"
   port: 5432
   http_port: 8080
@@ -135,7 +136,7 @@ metrics:
                         <h3>Environment Variables</h3>
                         <p>You can also configure TelumDB using environment variables:</p>
                         <div class="code-block">
-                            <pre><code>export TELUMDB_CONFIG_FILE=/path/to/config.yaml
+                            <pre><code class="language-bash">export TELUMDB_CONFIG_FILE=/path/to/config.yaml
 export TELUMDB_DATA_DIR=/path/to/data
 export TELUMDB_LOG_LEVEL=debug
 export TELUMDB_PORT=5432</code></pre>
@@ -148,7 +149,7 @@ export TELUMDB_PORT=5432</code></pre>
                         <h3>Starting the Server</h3>
                         <p>Start the TelumDB server:</p>
                         <div class="code-block">
-                            <pre><code># Use default configuration
+                            <pre><code class="language-bash"># Use default configuration
 ./telumdb
 
 # Use custom configuration
@@ -168,7 +169,7 @@ export TELUMDB_PORT=5432</code></pre>
                         <h3>Using the CLI</h3>
                         <p>Connect to TelumDB using the CLI tool:</p>
                         <div class="code-block">
-                            <pre><code># Interactive mode
+                            <pre><code class="language-bash"># Interactive mode
 ./telumdb-cli
 
 # Execute single command
@@ -188,7 +189,7 @@ export TELUMDB_PORT=5432</code></pre>
                         
                         <h3>Create Tables</h3>
                         <div class="code-block">
-                            <pre><code>CREATE TABLE users (
+                            <pre><code class="language-sql">CREATE TABLE users (
     id INTEGER PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE,
@@ -200,7 +201,7 @@ export TELUMDB_PORT=5432</code></pre>
                         
                         <h3>Insert Data</h3>
                         <div class="code-block">
-                            <pre><code>INSERT INTO users (name, email, age, department) VALUES
+                            <pre><code class="language-sql">INSERT INTO users (name, email, age, department) VALUES
     ('Alice Johnson', 'alice@company.com', 30, 'Engineering'),
     ('Bob Smith', 'bob@company.com', 25, 'Marketing'),
     ('Charlie Brown', 'charlie@company.com', 35, 'Engineering');</code></pre>
@@ -208,7 +209,7 @@ export TELUMDB_PORT=5432</code></pre>
                         
                         <h3>Query Data</h3>
                         <div class="code-block">
-                            <pre><code>-- Basic SELECT
+                            <pre><code class="language-sql">-- Basic SELECT
 SELECT * FROM users WHERE age > 25;
 
 -- Complex query with JOINs
@@ -227,7 +228,7 @@ ORDER BY order_count DESC;</code></pre>
                         
                         <h3>Create Tensors</h3>
                         <div class="code-block">
-                            <pre><code>CREATE TENSOR user_embeddings (
+                            <pre><code class="language-sql">CREATE TENSOR user_embeddings (
     shape [10000, 768],
     dtype float32,
     chunk_size [1000, 768]
@@ -242,7 +243,7 @@ CREATE TENSOR model_weights (
                         
                         <h3>Tensor Operations</h3>
                         <div class="code-block">
-                            <pre><code>-- Mathematical operations
+                            <pre><code class="language-sql">-- Mathematical operations
 ADD(embeddings, bias_vector);
 MULTIPLY(embeddings, scale_factor);
 MATRIX_MULTIPLY(embeddings, weights);
@@ -278,7 +279,7 @@ COSINE_SIMILARITY(vector_a, vector_b);</code></pre>
                         
                         <h3>Similarity Search</h3>
                         <div class="code-block">
-                            <pre><code>-- Find users with similar embeddings
+                            <pre><code class="language-sql">-- Find users with similar embeddings
 SELECT u.name, u.email, u.department,
        cosine_similarity(ue.embeddings, query_vector) as similarity
 FROM users u
@@ -291,7 +292,7 @@ LIMIT 10;</code></pre>
                         
                         <h3>Product Recommendations</h3>
                         <div class="code-block">
-                            <pre><code>-- Recommend products based on user embeddings
+                            <pre><code class="language-sql">-- Recommend products based on user embeddings
 SELECT p.name, p.category, p.price,
        cosine_similarity(pe.embeddings, user_profile) as similarity
 FROM products p
@@ -304,7 +305,7 @@ LIMIT 5;</code></pre>
                         
                         <h3>Complex Analytics</h3>
                         <div class="code-block">
-                            <pre><code>-- User segmentation with tensor clustering
+                            <pre><code class="language-sql">-- User segmentation with tensor clustering
 SELECT u.department,
        AVG(cosine_similarity(ue.embeddings, dept_centroid)) as avg_similarity,
        COUNT(*) as user_count
@@ -323,7 +324,7 @@ ORDER BY avg_similarity DESC;</code></pre>
                         <p><strong>Problem:</strong> "Connection refused" error</p>
                         <p><strong>Solution:</strong> Make sure the TelumDB server is running:</p>
                         <div class="code-block">
-                            <pre><code># Check if server is running
+                            <pre><code class="language-bash"># Check if server is running
 ./telumdb
 
 # In another terminal, test connection
@@ -334,7 +335,7 @@ ORDER BY avg_similarity DESC;</code></pre>
                         <p><strong>Problem:</strong> "Address already in use" error</p>
                         <p><strong>Solution:</strong> Change the port in configuration:</p>
                         <div class="code-block">
-                            <pre><code>server:
+                            <pre><code class="language-yaml">server:
   port: 5433  # Use different port</code></pre>
                         </div>
                         
@@ -342,7 +343,7 @@ ORDER BY avg_similarity DESC;</code></pre>
                         <p><strong>Problem:</strong> "Permission denied" error</p>
                         <p><strong>Solution:</strong> Check data directory permissions:</p>
                         <div class="code-block">
-                            <pre><code># Create data directory with proper permissions
+                            <pre><code class="language-bash"># Create data directory with proper permissions
 mkdir -p ./data
 chmod 755 ./data
 
@@ -393,6 +394,8 @@ chmod 755 ./data
         </div>
     </footer>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

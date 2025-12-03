@@ -1,0 +1,1 @@
+CREATE TENSOR test (shape [10, 10], dtype float32;
